@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Services Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; }
+        input, button { margin: 5px; padding: 5px; }
+        #productList, #cart { list-style-type: none; padding: 0; }
+        #productList li, #cart li { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>E-commerce Services Test</h1>
+
+    <div id="authSection" class="section">
+        <h2>Authentication</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+        <p id="authMessage"></p>
+    </div>
+
+    <div id="productSection" class="section">
+        <h2>Products</h2>
+        <div>
+            <input type="text" id="productName" placeholder="Product Name">
+            <input type="number" id="productPrice" placeholder="Price">
+            <input type="number" id="productStock" placeholder="Stock">
+            <button onclick="addProduct()">Add Product</button>
+        </div>
+        <button onclick="fetchProducts()">Fetch Products</button>
+        <ul id="productList"></ul>
+    </div>
+
+    <div id="cartSection" class="section">
+        <h2>Cart</h2>
+        <button onclick="fetchCart()">Fetch Cart</button>
+        <ul id="cart"></ul>
+        <button onclick="checkout()">Checkout</button>
+    </div>
+
+    <script>
+        let token = '';
+        let currentUser = '';
+
+        const BASE_URLS = {
+            auth: 'http://localhost:3002',
+            product: 'http://localhost:3000',
+            cart: 'http://localhost:3004',
+            order: 'http://localhost:3001',
+            payment: 'http://localhost:3003'
+        };
+
+        async function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            try {
+                await axios.post(`${BASE_URLS.auth}/register`, { username, password });
+                document.getElementById('authMessage').textContent = 'Registration successful. Please log in.';
+            } catch (error) {
+                document.getElementById('authMessage').textContent = 'Registration failed: ' + error.response.data.error;
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            try {
+                const response = await axios.post(`${BASE_URLS.auth}/login`, { username, password });
+                token = response.data.token;
+                currentUser = username;
+                document.getElementById('authMessage').textContent = 'Login successful.';
+            } catch (error) {
+                document.getElementById('authMessage').textContent = 'Login failed: ' + error.response.data.error;
+            }
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('productName').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const stock = parseInt(document.getElementById('productStock').value);
+            
+            try {
+                await axios.post('http://localhost:3000/products', { name, price, stock });
+                alert('Product added successfully');
+                fetchProducts();
+            } catch (error) {
+                console.error('Error adding product:', error);
+                alert('Failed to add product');
+            }
+        }
+
+        
+
+        async function fetchProducts() {
+            try {
+                const response = await axios.get(`${BASE_URLS.product}/products`);
+                const productList = document.getElementById('productList');
+                productList.innerHTML = '';
+                response.data.forEach(product => {
+                    const li = document.createElement('li');
+                    li.textContent = `${product.name} - $${product.price} (Stock: ${product.stock})`;
+                    const addButton = document.createElement('button');
+                    addButton.textContent = 'Add to Cart';
+                    addButton.onclick = () => addToCart(product._id);
+                    li.appendChild(addButton);
+                    productList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        }
+
+        async function addToCart(productId) {
+            try {
+                await axios.post(`${BASE_URLS.cart}/cart`, { userId: currentUser, productId, quantity: 1 });
+                fetchCart();
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+            }
+        }
+
+        async function fetchCart() {
+            try {
+                const response = await axios.get(`${BASE_URLS.cart}/cart/${currentUser}`);
+                const cart = document.getElementById('cart');
+                cart.innerHTML = '';
+                response.data.items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `Product ID: ${item.productId}, Quantity: ${item.quantity}`;
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = 'Remove';
+                    removeButton.onclick = () => removeFromCart(item.productId);
+                    li.appendChild(removeButton);
+                    cart.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching cart:', error);
+            }
+        }
+
+        async function removeFromCart(productId) {
+            try {
+                await axios.delete(`${BASE_URLS.cart}/cart/${currentUser}/${productId}`);
+                fetchCart();
+            } catch (error) {
+                console.error('Error removing from cart:', error);
+            }
+        }
+
+        async function checkout() {
+            try {
+                await axios.post(`${BASE_URLS.cart}/cart/${currentUser}/checkout`);
+                alert('Checkout successful!');
+                fetchCart();
+            } catch (error) {
+                console.error('Error during checkout:', error);
+                alert('Checkout failed: ' + error.response.data.error);
+            }
+        }
+    </script>
+</body>
+</html>

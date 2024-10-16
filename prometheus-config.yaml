@@ -1,0 +1,69 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'product-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: product-service
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        regex: '3000'
+        action: keep
+
+  - job_name: 'order-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: order-service
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        regex: '3001'
+        action: keep
+
+  - job_name: 'auth-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: auth-service
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        regex: '3002'
+        action: keep
+
+  - job_name: 'payment-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: payment-service
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        regex: '3003'
+        action: keep
+
+  - job_name: 'cart-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: cart-service
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        regex: '3004'
+        action: keep
+
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+    metric_relabel_configs:
+      - action: replace
+        source_labels: [pod]
+        target_label: pod_name
