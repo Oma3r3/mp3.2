@@ -44,6 +44,12 @@
         <button onclick="checkout()">Checkout</button>
     </div>
 
+    <div class="section">
+        <h2>Performance Testing</h2>
+        <button onclick="triggerHeavyTask()">Trigger CPU Spike</button>
+    </div>
+    
+
     <script>
         let token = '';
         let currentUser = '';
@@ -163,6 +169,18 @@
                 alert('Checkout failed: ' + error.response.data.error);
             }
         }
+
+    async function triggerHeavyTask() {
+    try {
+        await axios.get(`${BASE_URLS.product}/heavy-task`);
+        alert('Heavy task completed!');
+    } catch (error) {
+        console.error('Error triggering heavy task:', error);
+        alert('Failed to trigger heavy task');
+    }
+}
+
+
     </script>
 </body>
 </html>

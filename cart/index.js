@@ -2,9 +2,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const promClient = require('prom-client');
 const axios = require('axios');
+const cors = require('cors'); 
 
 const app = express();
 app.use(express.json());
+
+app.use(cors({
+  origin: '*', // Temporarily allow all origins for testing
+}));
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  next();
+});
 
 const register = new promClient.Registry();
 promClient.collectDefaultMetrics({ register });
@@ -68,6 +80,7 @@ app.post('/cart', async (req, res) => {
     res.status(201).json(cart);
   } catch (error) {
     res.status(500).json({ error: 'Error adding item to cart' });
+    console.log("error in here")
   }
 });
 

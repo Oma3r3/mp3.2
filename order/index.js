@@ -2,9 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const promClient = require('prom-client');
 const axios = require('axios');
+const cors = require('cors'); 
 
 const app = express();
 app.use(express.json());
+
+app.use(cors({
+  origin: '*', // Temporarily allow all origins for testing
+}));
 
 const register = new promClient.Registry();
 promClient.collectDefaultMetrics({ register });

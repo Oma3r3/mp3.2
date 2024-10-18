@@ -103,6 +103,16 @@ app.get('/metrics', async (req, res) => {
   res.end(await register.metrics());
 });
 
+app.get('/heavy-task', (req, res) => {
+  // A simple CPU-intensive loop for demonstration
+  const endTime = Date.now() + 10000; // Run for 10 seconds
+  while (Date.now() < endTime) {
+    Math.sqrt(Math.random()); // Perform some calculations
+  }
+  res.json({ message: 'Heavy task completed' });
+});
+
+
 const port = 3000;
 app.listen(port, '0.0.0.0', () => {
   console.log(`Product service listening at http://0.0.0.0:${port}`);
